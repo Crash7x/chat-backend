@@ -7,5 +7,4 @@ class Connection(val name: String, val session: DefaultWebSocketSession) {
     companion object {
         val lastId = AtomicInteger(0)
     }
-    val id = lastId.get()
 }
