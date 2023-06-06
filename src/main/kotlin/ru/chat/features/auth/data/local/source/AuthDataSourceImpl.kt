@@ -3,7 +3,6 @@ package ru.chat.features.auth.data.local.source
 import com.mongodb.client.model.Filters
 import ru.chat.features.auth.data.local.dao.UserEntity
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import ru.chat.features.auth.data.local.source.AuthDataSource
 
 /**
  * Auth data source impl
