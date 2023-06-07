@@ -3,20 +3,17 @@ package ru.chat.features.chat.data.source
 import io.ktor.util.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
 import ru.chat.features.auth.data.local.dao.UserEntity
 import ru.chat.features.chat.data.dao.ChatSessionEntity
 import ru.chat.features.chat.data.dao.MessageEntity
 import ru.chat.features.chat.domain.mapper.toMessage
 import ru.chat.features.chat.resource.data.Message
-import org.litote.kmongo.coroutine.CoroutineDatabase
+import ru.chat.features.auth.data.local.dao.UserTable
+import ru.chat.features.chat.data.dao.ChatSessionTable
+import ru.chat.features.chat.data.dao.MessageTable
 import java.util.*
 
-class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
-    private val users = database.getCollection<UserEntity>()
-    private val session = database.getCollection<ChatSessionEntity>()
-    private val messages = database.getCollection<MessageEntity>()
-
+class ChatDataSourceImpl : ChatDataSource {
     /**
      * Get friend list
      * Getting friend list with last message sent or received for each friend if exists
@@ -24,7 +21,7 @@ class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
      * @return
      */
     override suspend fun getFriendList(sender: String): Flow<List<UserEntity>> = flow {
-        val map = users.find().toFlow().toList().map {
+        val map = UserTable.find().map {
             it.copy(lastMessage = getLastMessage(sender = sender, receiver = it.email ?: ""))
         }
         emit(map)
@@ -38,7 +35,7 @@ class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
      * @return
      */
     override suspend fun checkSessionAvailability(sender: String, receiver: String): String? {
-        val result = session.find().toList()
+        val result = ChatSessionTable.find()
         return try {
             result.first {
                 (it.sender.contains(sender) && it.receiver.contains(receiver)) || (it.sender.contains(receiver) && it.receiver.contains(
@@ -59,12 +56,12 @@ class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
      */
     override suspend fun createNewSession(sender: String, receiver: String): String {
         val sessionId = UUID.nameUUIDFromBytes(generateNonce().toByteArray()).toString()
-        session.insertOne(ChatSessionEntity(sender = sender, receiver = receiver, sessionId = sessionId))
+        ChatSessionTable.insertChatSessionEntity(ChatSessionEntity(sender = sender, receiver = receiver, sessionId = sessionId))
         return sessionId
     }
 
     override suspend fun insertMessage(messageEntity: MessageEntity) {
-        messages.insertOne(messageEntity)
+       MessageTable.insertMessageEntity(messageEntity)
     }
 
     /**
@@ -78,7 +75,7 @@ class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
     override suspend fun getHistoryMessages(sender: String, receiver: String): Flow<List<MessageEntity>> = flow {
         try {
             val result =
-                messages.find().descendingSort(MessageEntity::timestamp).toList().filter {
+                MessageTable.find().sortedByDescending(MessageEntity::timestamp).filter {
                     (it.sender.contains(sender) && it.receiver.contains(receiver)) || (it.sender.contains(receiver) && it.receiver.contains(
                         sender
                     ))
@@ -99,7 +96,7 @@ class ChatDataSourceImpl(database: CoroutineDatabase) : ChatDataSource {
      */
     private suspend fun getLastMessage(sender: String, receiver: String): Message? {
         return try {
-            messages.find().toList().last {
+            MessageTable.find().last {
                 (it.sender.contains(sender) && it.receiver.contains(receiver)) || (it.sender.contains(receiver) && it.receiver.contains(
                     sender
                 ))

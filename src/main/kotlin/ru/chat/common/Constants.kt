@@ -5,6 +5,11 @@ const val issuer = "chat.ru"
 const val audience = "chat.ru"
 const val mRealm = "Access to 'chat.ru'"
 
+const val URL_DATABASE = "jdbc:postgresql://localhost:5432/chat-database"
+const val DRIVER_DATABASE = "org.postgresql.Driver"
+const val USER_DATABASE = "postgres"
+const val PASSWORD_DATABASE = "761ihigoz"
+
 const val ENDPOINT_SIGNUP = "/auth/signup"
 const val ENDPOINT_LOGIN = "auth/login"
 const val ENDPOINT_FRIEND_LIST = "/chat/friends-list"

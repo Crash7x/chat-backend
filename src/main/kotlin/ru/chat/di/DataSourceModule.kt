@@ -12,10 +12,10 @@ import org.koin.dsl.module
  */
 val dataSourceModule = module {
     single<AuthDataSource> {
-        AuthDataSourceImpl(get())
+        AuthDataSourceImpl()
     }
 
     single<ChatDataSource> {
-        ChatDataSourceImpl(get())
+        ChatDataSourceImpl()
     }
 }
